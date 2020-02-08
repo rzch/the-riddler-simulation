@@ -3,9 +3,12 @@
 #Puzzle: https://fivethirtyeight.com/features/can-you-decode-the-riddler-lottery/
 
 import random
+import math
 
-n = 7 #number of games
-c = 6 #home 
+n = 7 #number of games played
+schedule = [True, True, False, False, False, True, True] #team 1 hosting schedule
+c = 6 #home streak required
+m = math.ceil(n) #minimum number of games to win the series
 
 p = 0.54 #probability of home win
 q = 1 - p #probability of home loss
@@ -15,9 +18,13 @@ Nsim = 1000000 #number of simulations
 count = 0
 for N in range(Nsim):
 
+    t1 = 0 #team1 score
+    t2 = 0 #team2 score
     streak = 0
+    
     for i in range(n):
-        if (random.random() < q): #simulate whether home lost
+        result = random.random() < q
+        if (result): #simulate whether home lost
             streak += 1
 
             if (streak >= c): #check if streak achieved
@@ -27,46 +34,21 @@ for N in range(Nsim):
         else: #streak broken
             streak = 0
 
+        #update series score
+        if (result):
+            if (schedule[i]):
+                t1 += 1
+            else:
+                t2 += 1
+        else:
+            if (schedule[i]):
+                t2 += 1
+            else:
+                t1 += 1            
+
+        if (t1 >= 4 or t2 >= 4): #series finished
+            break
+
 print('Empirical probability:')
 print(count/Nsim)
 
-#-------------------------------------
-#Theoretical calculation using the inclusion-exclusion principle
-
-def choose_iter(elements, length):
-    #recursive function used in choose(l, k)
-    for i in range(len(elements)):
-        if length == 1:
-            yield (elements[i],)
-        else:
-            for next in choose_iter(elements[i+1:len(elements)], length-1):
-                yield (elements[i],) + next
-                
-def choose(l, k):
-    #function that returns all k-combinations in a list
-    #adapted from https://stackoverflow.com/questions/127704/algorithm-to-return-all-combinations-of-k-elements-from-n
-    return list(choose_iter(l, k))
-
-
-#number of possible c-length streaks
-d = n - c + 1
-
-#generate the list of sets for all the possible c-length streaks
-A = [set(range(i, i + c)) for i in range(d)]
-
-prob = 0
-for i in range(d):
-    #generate combinations from A
-    combs = choose(list(range(d)), i + 1)
-
-    for j in range(len(combs)):
-        #create the set union of sets from A
-        s = set()
-        for k in range(i + 1):
-            s = s.union(A[combs[j][k]])
-
-        #update summand in inclusion-exclusion principle formula
-        prob += ((-1)**i)*(q**len(s))
-
-print('Theoretical probability:')
-print(prob)
