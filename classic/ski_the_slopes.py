@@ -1,4 +1,6 @@
-# The Riddler Classic 2021-01-15: Ski the Slopes
+# The Riddler Classic 2021-01-22: Ski the Slopes
+# https://fivethirtyeight.com/features/can-you-skillfully-ski-the-slopes/
+# Monte-Carlo simulation
 
 import random
 
